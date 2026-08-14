@@ -31,12 +31,17 @@ A touchscreen-optimized family calendar and chore tracking application that inte
    GOOGLE_CLIENT_SECRET=your_google_client_secret_here
    # For local development
    GOOGLE_REDIRECT_URI=http://localhost:3000/oauth2callback
-   # For production
-   # GOOGLE_REDIRECT_URI=https://your_domain.com/oauth2callback
+   # For LAN deployment behind Caddy (see "SSL/HTTPS Setup" below)
+   # GOOGLE_REDIRECT_URI=https://familycalendar.your-domain.com/oauth2callback
 
    # Server Configuration
    PORT=3000
    NODE_ENV=development
+
+   # Only needed if you're running the optional Caddy reverse proxy
+   # (docker-compose --profile production). See "SSL/HTTPS Setup" below.
+   # DOMAIN=familycalendar.your-domain.com
+   # CF_API_TOKEN=your_cloudflare_dns_edit_token
    ```
 
 4. Start the application:
@@ -74,7 +79,10 @@ docker run -d -p 3000:3000 --env-file .env familycalendar
    - **Application type**: Web application
    - **Authorized redirect URIs**:
      - For local development, add `http://localhost:3000/oauth2callback`
-     - For production, add `https://your_domain.com/oauth2callback`
+     - For a LAN deployment, add `https://familycalendar.your-domain.com/oauth2callback`
+       (Google rejects bare IP addresses and plain `http://`, so a real domain name
+       is required here even if it only ever resolves to a private LAN address —
+       see "SSL/HTTPS Setup" below)
 5. Copy the **Client ID** and **Client Secret** and add them to your `.env` file.
 
 ## Apple Calendar Setup
@@ -128,6 +136,9 @@ familycalendar/
 ├── .env                   # Environment configuration (gitignored)
 ├── Dockerfile             # Docker container configuration
 ├── docker-compose.yml     # Docker Compose setup
+├── Caddyfile              # Reverse proxy + Let's Encrypt config (production profile)
+├── caddy/
+│   └── Dockerfile          # Builds Caddy with the Cloudflare DNS-01 module
 ├── routes/
 │   ├── calendar.js        # Google/Apple calendar + tasks API
 │   ├── chores.js          # Chore management routes
@@ -164,24 +175,48 @@ for every request. Leave them unset to keep the kiosk open (default).
 2. Allocate at least 2GB RAM and 20GB storage
 3. Install Docker and Docker Compose
 4. Copy the application files to the VM
-5. Configure the domain name to point to your VM's IP
+5. Point a DNS name at the VM's LAN IP (see "SSL/HTTPS Setup" below) — this can
+   be a router-level DNS override / hosts-file entry, it does not need to be
+   reachable from the internet
 
 ### SSL/HTTPS Setup
-For production use with the configured redirect URI, you'll need SSL:
 
-1. Use Let's Encrypt with certbot:
-   ```bash
-   sudo apt install certbot
-   sudo certbot certonly --standalone -d familycalendar.example.com
+Google's OAuth redirect URI rules reject bare IP addresses and require `https`
+(with a narrow exception for `http://localhost`), so a LAN-only deployment still
+needs a real domain name and a valid certificate for it — just not public internet
+exposure. The included `caddy` service (Docker Compose `production` profile)
+handles both automatically using a **DNS-01** challenge against Cloudflare,
+which proves domain ownership via a DNS TXT record instead of an inbound HTTP
+request. Nothing needs to be reachable from the internet, and Caddy renews the
+certificate on its own indefinitely — no cron job, no manual renewal step.
+
+1. In the Cloudflare dashboard, create an API token scoped to just
+   **Zone → DNS → Edit** for the zone your domain lives in (not the global API key).
+2. Pick a subdomain (e.g. `familycalendar.your-domain.com`) and point it at your
+   server's LAN IP via a **local-only** DNS override — a Pi-hole/router DNS entry,
+   or a hosts-file entry on the devices that will use it. It does not need (and
+   should not have) a public DNS record pointing anywhere internet-reachable.
+3. Add to `.env`:
    ```
-
-2. Configure nginx (included in docker-compose.yml with `production` profile):
+   DOMAIN=familycalendar.your-domain.com
+   CF_API_TOKEN=your_cloudflare_dns_edit_token
+   GOOGLE_REDIRECT_URI=https://familycalendar.your-domain.com/oauth2callback
+   ```
+4. Register `https://familycalendar.your-domain.com/oauth2callback` as an
+   authorized redirect URI for the OAuth client in Google Cloud Console.
+5. Start the stack with the `production` profile so the `caddy` service runs
+   alongside the app:
    ```bash
    docker-compose --profile production up -d
    ```
 
+Caddy issues the certificate on first start and keeps it renewed for as long as
+the container keeps running — there's nothing further to maintain.
+
 ### Firewall Configuration
-Ensure ports 80 and 443 are open on your Proxmox host and VM firewall.
+Ports 80 and 443 only need to be reachable from your LAN (Caddy uses them to
+serve the app and redirect HTTP → HTTPS locally) — with the DNS-01 challenge
+above, neither port needs to be forwarded or opened to the internet.
 
 ## Troubleshooting
 
