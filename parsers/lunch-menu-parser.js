@@ -124,7 +124,7 @@ function parseMenuText(text) {
       currentDate = foundDate;
 
       // Determine the day of the week from the date
-      const dateParts = foundDate.split(/[\/\-]/);
+      const dateParts = foundDate.split(/[/-]/);
       let month = parseInt(dateParts[0]);
       let day = parseInt(dateParts[1]);
       let year = dateParts.length >= 3 ? parseInt(dateParts[2]) : new Date().getFullYear();
@@ -155,7 +155,7 @@ function parseMenuText(text) {
         /^breakfast$/i,
         /^week of/i,
         /^page \d+$/i,
-        /^[\d\/\-]+$/,  // Lines with only dates
+        /^[\d/-]+$/,  // Lines with only dates
         /^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$/i,  // Day names alone
         /^choice of/i,   // Common menu phrases
         /^K-\d+/i,       // Grade levels
@@ -276,11 +276,11 @@ function parseMenuTextAdvanced(text) {
  * Convert date string to ISO format (YYYY-MM-DD)
  * @param {string} dateStr - Date string (MM/DD, MM/DD/YYYY, etc.)
  * @param {number} year - Year to use if not in date string
- * @param {number} month - Month to use for context
+ * @param {number} _month - Month to use for context (currently unused)
  * @returns {string} - ISO date string
  */
-function normalizeDate(dateStr, year = new Date().getFullYear(), month = null) {
-  const parts = dateStr.split(/[\/\-]/);
+function normalizeDate(dateStr, year = new Date().getFullYear(), _month = null) {
+  const parts = dateStr.split(/[/-]/);
 
   if (parts.length >= 2) {
     let m = parseInt(parts[0]);
