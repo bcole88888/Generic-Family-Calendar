@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <a href="/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <h1><%= title %></h1>
+        </header>
+
+        <div class="chores-overview">
+            <% kids.forEach(kid => { %>
+                <div class="kid-summary" onclick="goToKidChores('<%= kid %>')">
+                    <h2><%= kid %></h2>
+                    <div class="summary-stats">
+                        <div class="points">
+                            <i class="fas fa-star"></i>
+                            <%= chores[kid].totalPoints %> today
+                        </div>
+                        <div class="points weekly">
+                            <i class="fas fa-trophy"></i>
+                            <%= chores[kid].weeklyPoints || 0 %> this week
+                        </div>
+                        <div class="completion">
+                            <% const dailyCompleted = chores[kid].dailyChores.filter(c => c.completed).length %>
+                            <% const dailyTotal = chores[kid].dailyChores.length %>
+                            <% const weeklyCompleted = chores[kid].weeklyChores.filter(c => c.completed).length %>
+                            <% const weeklyTotal = chores[kid].weeklyChores.length %>
+                            <%= dailyCompleted %>/<%= dailyTotal %> daily
+                            <%= weeklyCompleted %>/<%= weeklyTotal %> weekly
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+    <script src="/js/chores.js"></script>
+</body>
+</html>

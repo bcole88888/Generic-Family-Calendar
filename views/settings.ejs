@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .config-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .config-section h3 {
+            margin-top: 0;
+        }
+
+        .config-section p.section-desc {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: -5px;
+        }
+
+        .btn-configure {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 5px 5px 5px 0;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-configure:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #bb2d3b;
+        }
+
+        .status-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .field-group {
+            margin-bottom: 15px;
+        }
+
+        .field-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .field-group input[type="text"],
+        .field-group input[type="password"],
+        .field-group input[type="number"],
+        .field-group select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .inline-fields {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .inline-fields .field-group {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #eef0fb;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .chip button {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .logo-preview-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .logo-preview-row img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .connection-status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .config-container {
+                margin: 20px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="config-container">
+        <h1>⚙️ Settings</h1>
+        <p>Set up this Family Hub for your household — name, logo, kids, birthdays, and the calendars it syncs from.</p>
+
+        <!-- Branding -->
+        <div class="config-section">
+            <h3>Family Branding</h3>
+            <p class="section-desc">The name and icon shown at the top of the app.</p>
+
+            <div class="field-group">
+                <label for="appTitleInput">App / Family Name</label>
+                <input type="text" id="appTitleInput" value="<%= settings.appTitle %>">
+            </div>
+            <button class="btn-configure" onclick="saveBranding()">Save Name</button>
+
+            <div class="logo-preview-row" style="margin-top: 20px;">
+                <img id="logoPreview" src="<%= settings.logoIcon || '/images/family-hub-icon.png' %>" alt="Logo preview">
+                <div>
+                    <input type="file" id="logoFileInput" accept="image/*">
+                </div>
+            </div>
+            <button class="btn-configure" onclick="uploadLogo()">Upload Icon</button>
+            <button class="btn-configure btn-secondary" onclick="resetLogo()">Use Default Icon</button>
+
+            <div id="brandingStatus"></div>
+        </div>
+
+        <!-- Kids -->
+        <div class="config-section">
+            <h3>Kids (Chores)</h3>
+            <p class="section-desc">Each kid gets their own chore tracker on the Chores tab.</p>
+
+            <div class="chip-list" id="kidsList">
+                <% settings.kids.forEach(kid => { %>
+                    <div class="chip" data-kid="<%= kid %>">
+                        <span><%= kid %></span>
+                        <button onclick="removeKid('<%= kid %>')" title="Remove">&times;</button>
+                    </div>
+                <% }) %>
+            </div>
+
+            <div class="inline-fields">
+                <div class="field-group">
+                    <input type="text" id="newKidInput" placeholder="e.g. Alex">
+                </div>
+            </div>
+            <button class="btn-configure" onclick="addKid()">Add Kid</button>
+
+            <div id="kidsStatus"></div>
+        </div>
+
+        <!-- Birthdays -->
+        <div class="config-section">
+            <h3>Family Birthdays</h3>
+            <p class="section-desc">Shown as a countdown banner when a birthday is within 22 days.</p>
+
+            <div class="chip-list" id="birthdaysList">
+                <% settings.birthdays.forEach((bday, index) => { %>
+                    <div class="chip" data-index="<%= index %>">
+                        <span><%= bday.name %> — <%= ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][bday.month] %> <%= bday.day %></span>
+                        <button onclick="removeBirthday(<%= index %>)" title="Remove">&times;</button>
+                    </div>
+                <% }) %>
+            </div>
+
+            <div class="inline-fields">
+                <div class="field-group">
+                    <label for="newBirthdayName">Name</label>
+                    <input type="text" id="newBirthdayName" placeholder="e.g. Sam">
+                </div>
+                <div class="field-group">
+                    <label for="newBirthdayMonth">Month</label>
+                    <select id="newBirthdayMonth">
+                        <% ['January','February','March','April','May','June','July','August','September','October','November','December'].forEach((m, i) => { %>
+                            <option value="<%= i %>"><%= m %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="newBirthdayDay">Day</label>
+                    <input type="number" id="newBirthdayDay" min="1" max="31" value="1">
+                </div>
+            </div>
+            <button class="btn-configure" onclick="addBirthday()">Add Birthday</button>
+
+            <div id="birthdaysStatus"></div>
+        </div>
+
+        <!-- Google Calendar -->
+        <div class="config-section">
+            <h3>
+                Google Calendar
+                <span class="connection-status-badge <%= googleAuthenticated ? 'badge-connected' : 'badge-disconnected' %>">
+                    <%= googleAuthenticated ? 'Connected' : 'Not Connected' %>
+                </span>
+            </h3>
+            <p class="section-desc">
+                <% if (!googleConfigured) { %>
+                    Google API credentials aren't set up yet — add GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET to the .env file first (see README).
+                <% } else { %>
+                    Connect the Google account whose calendar should show up here.
+                <% } %>
+            </p>
+
+            <a href="/auth/google" class="btn-configure">Connect Google</a>
+            <button class="btn-configure btn-danger" onclick="disconnectGoogle()">Disconnect</button>
+
+            <div class="field-group" style="margin-top: 15px;">
+                <label for="googleCalendarIdInput">Calendar ID</label>
+                <input type="text" id="googleCalendarIdInput" value="<%= settings.googleCalendarId %>" placeholder="primary">
+            </div>
+            <div class="field-group">
+                <label for="googleLabelInput">Display label (whose calendar this is)</label>
+                <input type="text" id="googleLabelInput" value="<%= settings.googleCalendarLabel %>" placeholder="e.g. Google Calendar">
+            </div>
+            <button class="btn-configure" onclick="saveGoogleSettings()">Save Google Settings</button>
+
+            <div id="googleStatus"></div>
+        </div>
+
+        <!-- Apple Calendar -->
+        <div class="config-section">
+            <h3>
+                Apple Calendar
+                <span class="connection-status-badge <%= (settings.appleUsername && settings.applePassword) ? 'badge-connected' : 'badge-disconnected' %>">
+                    <%= (settings.appleUsername && settings.applePassword) ? 'Configured' : 'Not Configured' %>
+                </span>
+            </h3>
+            <p class="section-desc">Uses an Apple ID and an app-specific password (CalDAV). See README for how to generate one.</p>
+
+            <div class="field-group">
+                <label for="appleUsernameInput">Apple ID</label>
+                <input type="text" id="appleUsernameInput" value="<%= settings.appleUsername %>" placeholder="you@icloud.com">
+            </div>
+            <div class="field-group">
+                <label for="applePasswordInput">App-Specific Password</label>
+                <input type="password" id="applePasswordInput" placeholder="<%= settings.applePassword ? 'Leave blank to keep current password' : 'xxxx-xxxx-xxxx-xxxx' %>">
+            </div>
+            <div class="field-group">
+                <label for="appleLabelInput">Display label (whose calendar this is)</label>
+                <input type="text" id="appleLabelInput" value="<%= settings.appleCalendarLabel %>" placeholder="e.g. Apple Calendar">
+            </div>
+
+            <button class="btn-configure" onclick="saveAppleSettings()">Save Apple Settings</button>
+            <button class="btn-configure btn-secondary" onclick="testAppleConnection()">Test Connection</button>
+            <button class="btn-configure btn-danger" onclick="disconnectApple()">Disconnect</button>
+
+            <div id="appleStatus"></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Calendar</a>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            const className = type === 'success' ? 'status-success' :
+                             type === 'error' ? 'status-error' : 'status-info';
+            container.innerHTML = `<div class="status-message ${className}">${message}</div>`;
+        }
+
+        async function saveBranding() {
+            const appTitle = document.getElementById('appTitleInput').value;
+            try {
+                const res = await fetch('/settings/branding', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appTitle })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to save');
+                showStatus('brandingStatus', 'Saved! Reload the calendar to see the new name.', 'success');
+            } catch (error) {
+                showStatus('brandingStatus', error.message, 'error');
+            }
+        }
+
+        async function uploadLogo() {
+            const fileInput = document.getElementById('logoFileInput');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showStatus('brandingStatus', 'Choose an image file first', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('logoIcon', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/settings/logo', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Upload failed');
+                document.getElementById('logoPreview').src = data.logoIcon;
+                showStatus('brandingStatus', 'Logo updated!', 'success');
+            } catch (error) {
+                showStatus('brandingStatus', error.message, 'error');
+            }
+        }
+
+        async function resetLogo() {
+            await fetch('/settings/logo/reset', { method: 'POST' });
+            document.getElementById('logoPreview').src = '/images/family-hub-icon.png';
+            showStatus('brandingStatus', 'Reset to default icon.', 'success');
+        }
+
+        async function addKid() {
+            const input = document.getElementById('newKidInput');
+            const name = input.value.trim();
+            if (!name) return;
+
+            try {
+                const res = await fetch('/settings/kids', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to add kid');
+                input.value = '';
+                renderKids(data.kids);
+                showStatus('kidsStatus', `Added ${name}.`, 'success');
+            } catch (error) {
+                showStatus('kidsStatus', error.message, 'error');
+            }
+        }
+
+        async function removeKid(name) {
+            if (!confirm(`Remove ${name} and their chore history?`)) return;
+
+            try {
+                const res = await fetch(`/settings/kids/${encodeURIComponent(name)}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to remove kid');
+                renderKids(data.kids);
+                showStatus('kidsStatus', `Removed ${name}.`, 'success');
+            } catch (error) {
+                showStatus('kidsStatus', error.message, 'error');
+            }
+        }
+
+        function renderKids(kids) {
+            const list = document.getElementById('kidsList');
+            list.innerHTML = kids.map(kid => `
+                <div class="chip" data-kid="${kid}">
+                    <span>${kid}</span>
+                    <button onclick="removeKid('${kid}')" title="Remove">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+        async function addBirthday() {
+            const name = document.getElementById('newBirthdayName').value.trim();
+            const month = document.getElementById('newBirthdayMonth').value;
+            const day = document.getElementById('newBirthdayDay').value;
+
+            if (!name) {
+                showStatus('birthdaysStatus', 'Enter a name', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/settings/birthdays', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, month, day })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to add birthday');
+                document.getElementById('newBirthdayName').value = '';
+                renderBirthdays(data.birthdays);
+                showStatus('birthdaysStatus', `Added ${name}'s birthday.`, 'success');
+            } catch (error) {
+                showStatus('birthdaysStatus', error.message, 'error');
+            }
+        }
+
+        async function removeBirthday(index) {
+            try {
+                const res = await fetch(`/settings/birthdays/${index}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to remove birthday');
+                renderBirthdays(data.birthdays);
+                showStatus('birthdaysStatus', 'Removed.', 'success');
+            } catch (error) {
+                showStatus('birthdaysStatus', error.message, 'error');
+            }
+        }
+
+        function renderBirthdays(birthdays) {
+            const list = document.getElementById('birthdaysList');
+            list.innerHTML = birthdays.map((b, i) => `
+                <div class="chip" data-index="${i}">
+                    <span>${b.name} — ${MONTH_NAMES[b.month]} ${b.day}</span>
+                    <button onclick="removeBirthday(${i})" title="Remove">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        async function saveGoogleSettings() {
+            const calendarId = document.getElementById('googleCalendarIdInput').value;
+            const label = document.getElementById('googleLabelInput').value;
+
+            try {
+                const res = await fetch('/settings/calendar/google', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ calendarId, label })
+                });
+                if (!res.ok) throw new Error('Failed to save');
+                showStatus('googleStatus', 'Saved!', 'success');
+            } catch (error) {
+                showStatus('googleStatus', error.message, 'error');
+            }
+        }
+
+        async function disconnectGoogle() {
+            if (!confirm('Disconnect Google Calendar?')) return;
+            await fetch('/settings/calendar/google/disconnect', { method: 'POST' });
+            showStatus('googleStatus', 'Disconnected. Reload to update the status badge.', 'success');
+        }
+
+        async function saveAppleSettings() {
+            const username = document.getElementById('appleUsernameInput').value;
+            const password = document.getElementById('applePasswordInput').value;
+            const label = document.getElementById('appleLabelInput').value;
+
+            try {
+                const res = await fetch('/settings/calendar/apple', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, label })
+                });
+                if (!res.ok) throw new Error('Failed to save');
+                document.getElementById('applePasswordInput').value = '';
+                document.getElementById('applePasswordInput').placeholder = password ? 'Leave blank to keep current password' : document.getElementById('applePasswordInput').placeholder;
+                showStatus('appleStatus', 'Saved! Reload to update the status badge.', 'success');
+            } catch (error) {
+                showStatus('appleStatus', error.message, 'error');
+            }
+        }
+
+        async function disconnectApple() {
+            if (!confirm('Disconnect Apple Calendar?')) return;
+            await fetch('/settings/calendar/apple/disconnect', { method: 'POST' });
+            document.getElementById('appleUsernameInput').value = '';
+            showStatus('appleStatus', 'Disconnected.', 'success');
+        }
+
+        async function testAppleConnection() {
+            showStatus('appleStatus', 'Testing connection…', 'info');
+            try {
+                const res = await fetch('/settings/calendar/apple/test', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('appleStatus', 'Connection successful!', 'success');
+                } else {
+                    showStatus('appleStatus', data.error || 'Connection failed', 'error');
+                }
+            } catch (error) {
+                showStatus('appleStatus', 'Connection test failed', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

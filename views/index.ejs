@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/css/styles.css?v=3">
+    <link rel="stylesheet" href="/css/meals.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-logo">
+                <img src="<%= logoIcon %>" alt="" class="logo-icon">
+                <h1 class="logo-wordmark"><%= title %></h1>
+            </div>
+            <div class="header-controls">
+                <div class="datetime">
+                    <div class="current-time" id="currentTime"></div>
+                    <div class="current-date" id="currentDate"></div>
+                </div>
+                <div class="weather-info" id="weatherInfo">
+                    <div class="weather-current">
+                        <i id="weatherIcon" class="fas fa-cloud"></i>
+                        <span id="currentTemp">--°</span>
+                    </div>
+                    <div class="weather-forecasts">
+                        <div class="weather-day">
+                            <div class="weather-day-label">Today</div>
+                            <div class="weather-day-details">
+                                <i id="todayIcon" class="fas fa-cloud"></i>
+                                <span id="todayDescription">Loading...</span>
+                                <span id="todayRange">H: --° L: --°</span>
+                            </div>
+                        </div>
+                        <div class="weather-day">
+                            <div class="weather-day-label">Tomorrow</div>
+                            <div class="weather-day-details">
+                                <i id="tomorrowIcon" class="fas fa-cloud"></i>
+                                <span id="tomorrowDescription">Loading...</span>
+                                <span id="tomorrowRange">H: --° L: --°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right-controls">
+                    <!-- Navigation Grid - Upper Right -->
+                    <nav class="nav-grid">
+                        <button class="nav-icon active" onclick="showTab('calendar')" title="Calendar">
+                            <i class="fas fa-calendar"></i>
+                        </button>
+                        <button class="nav-icon" onclick="showTab('chores')" title="Chores">
+                            <i class="fas fa-tasks"></i>
+                        </button>
+                        <button class="nav-icon" onclick="showTab('meals')" title="Meals">
+                            <i class="fas fa-utensils"></i>
+                        </button>
+                        <button class="nav-icon" onclick="showTab('lunch-menu')" title="School Lunch">
+                            <i class="fas fa-hamburger"></i>
+                        </button>
+                        <a class="nav-icon" href="/settings" title="Settings">
+                            <i class="fas fa-cog"></i>
+                        </a>
+                    </nav>
+
+                    <button class="btn btn-refresh" onclick="manualRefresh()" title="Refresh calendar events">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hourly Weather Banner -->
+        <div class="hourly-weather-banner" id="hourlyWeatherBanner">
+            <div class="hourly-weather-strip" id="hourlyWeatherStrip">
+                <div class="hourly-weather-loading">Loading hourly forecast…</div>
+            </div>
+        </div>
+
+        <!-- Christmas Countdown Banner -->
+        <div class="christmas-countdown-banner" id="christmasCountdown">
+            <div class="christmas-content">
+                <span class="christmas-icon">🎄</span>
+                <span class="countdown-text" id="countdownText"></span>
+                <span class="christmas-icon">🎅</span>
+            </div>
+        </div>
+
+        <!-- Holiday Countdown Banner (Valentine's, Easter, 4th of July) -->
+        <div class="holiday-countdown-banner" id="holidayCountdown" style="display: none;">
+            <div class="holiday-content">
+                <span class="holiday-icon" id="holidayIconLeft"></span>
+                <span class="holiday-countdown-text" id="holidayCountdownText"></span>
+                <span class="holiday-icon" id="holidayIconRight"></span>
+            </div>
+        </div>
+
+        <!-- Birthday Countdown Banner -->
+        <div class="birthday-countdown-banner" id="birthdayCountdown" style="display: none;">
+            <div class="birthday-content">
+                <span class="birthday-icon" id="birthdayIconLeft">🎂</span>
+                <span class="birthday-text" id="birthdayText"></span>
+                <span class="birthday-icon" id="birthdayIconRight">🎁</span>
+            </div>
+        </div>
+
+        <!-- Elf on a Shelf Goodbye Message - December 24th -->
+        <div class="elf-message-banner" id="elfMessageBanner" style="display: none;">
+            <div class="elf-message-content">
+                <img src="/images/elfshelf.webp" alt="Jingle the Elf" class="elf-image">
+                <div class="elf-message-text">
+                    <p class="elf-greeting">Goodbye, kids!</p>
+                    <p class="elf-body">I had so much fun watching you this year! You've been wonderful, and I can't wait to see you again next Christmas!</p>
+                    <p class="elf-signature">With love, <span class="elf-name">Jingle</span> 🎄</p>
+                </div>
+                <img src="/images/elfshelf.webp" alt="Jingle the Elf" class="elf-image">
+            </div>
+        </div>
+
+        <main class="main-content">
+            <!-- Calendar Tab -->
+            <div id="calendar-tab" class="tab-content active">
+                <div class="calendar-container">
+                    <div class="summer-banner-wrapper" id="summerBanner" style="display: none;">
+                        <div class="summer-banner">
+                            <span class="summer-emoji summer-sun">☀️</span>
+                            <span class="summer-emoji summer-palm">🌴</span>
+                            <span class="summer-text">Summer Time!</span>
+                            <span class="summer-emoji summer-icecream">🍦</span>
+                            <span class="summer-emoji summer-wave">🌊</span>
+                        </div>
+                        <div class="summer-countdown" id="summerCountdown"></div>
+                    </div>
+                    <div class="calendar-header">
+                        <button class="btn btn-nav" onclick="previousTwoWeeks()">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h2 id="weekDisplay">This Week & Next Week</h2>
+                        <button class="btn btn-nav" onclick="nextTwoWeeks()">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar will be generated here -->
+                    </div>
+
+                    <div class="events-today">
+                        <h3>Today's Events</h3>
+                        <div id="todaysEvents" class="events-list">
+                            <!-- Today's events will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Lunch menu now shows inline between calendar weeks -->
+                    <div class="lunch-menu-today" style="display: none;">
+                        <h3><i class="fas fa-hamburger"></i> Today's School Lunch</h3>
+                        <div id="todaysLunchMenu" class="lunch-menu-display">
+                            <!-- Today's lunch menu will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="tasks-section">
+                        <h3>Tasks</h3>
+                        <div id="tasksList" class="tasks-list">
+                            <!-- Tasks will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chores Tab -->
+            <div id="chores-tab" class="tab-content">
+                <div class="chores-container">
+                    <h2>Family Chores</h2>
+                    <div class="kids-grid">
+                        <% kids.forEach(kid => { %>
+                            <div class="kid-card" onclick="goToKidChores('<%= kid %>')">
+                                <h3><%= kid %></h3>
+                                <div class="points-display">
+                                    <i class="fas fa-star"></i>
+                                    <span id="<%= kid.toLowerCase() %>-points">0</span> points
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="<%= kid.toLowerCase() %>-progress"></div>
+                                </div>
+                                <p>Tap to view chores</p>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meals Tab -->
+            <div id="meals-tab" class="tab-content">
+                <div class="meals-container">
+                    <h2>Weekly Meal Plan</h2>
+
+                    <div class="week-navigation">
+                        <button class="week-btn active" id="thisWeekBtn" onclick="switchWeek('thisWeek')">
+                            <i class="fas fa-calendar-week"></i> This Week
+                        </button>
+                        <button class="week-btn" id="nextWeekBtn" onclick="switchWeek('nextWeek')">
+                            <i class="fas fa-calendar-plus"></i> Next Week
+                        </button>
+                    </div>
+
+                    <div class="meals-controls">
+                        <button class="btn btn-primary" onclick="showAddMealDialog()">
+                            <i class="fas fa-plus"></i> Add New Meal
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearWeeklyMeals()">
+                            <i class="fas fa-eraser"></i> Clear <span id="clearWeekText">This Week</span>
+                        </button>
+                    </div>
+
+                    <div class="weekly-meals-grid" id="weeklyMealsGrid">
+                        <!-- Weekly meals will be loaded here -->
+                    </div>
+
+                    <div class="meals-list-section">
+                        <h3>Available Meals</h3>
+                        <div class="meals-list" id="mealsList">
+                            <!-- Meals list will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lunch Menu Tab -->
+            <div id="lunch-menu-tab" class="tab-content">
+                <div class="lunch-menu-container">
+                    <h2>School Lunch Menu</h2>
+                    <p>Upload monthly lunch menu documents (PDF or Word) to display them on the calendar.</p>
+
+                    <div class="lunch-menu-controls">
+                        <div class="upload-section">
+                            <h3><i class="fas fa-upload"></i> Upload Menu Document</h3>
+                            <form id="lunchMenuUploadForm" enctype="multipart/form-data">
+                                <input type="file" id="menuPdfInput" name="menuPdf" accept=".pdf,.doc,.docx" required>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-file-upload"></i> Upload & Parse
+                                </button>
+                            </form>
+                            <div id="uploadStatus" class="upload-status"></div>
+                        </div>
+
+                        <div class="menu-preview-section">
+                            <h3><i class="fas fa-calendar-day"></i> Menu Preview</h3>
+                            <div class="date-picker-section">
+                                <label for="menuDatePicker">View menu for date:</label>
+                                <input type="date" id="menuDatePicker" class="date-input">
+                                <button class="btn btn-secondary" onclick="loadMenuForDate()">
+                                    <i class="fas fa-search"></i> Show
+                                </button>
+                            </div>
+                            <div id="menuPreview" class="menu-preview">
+                                <p class="no-menu-message">Select a date to view the menu</p>
+                            </div>
+                        </div>
+
+                        <div class="menu-management-section">
+                            <h3><i class="fas fa-cog"></i> Menu Management</h3>
+                            <button class="btn btn-secondary" onclick="showAllMenus()">
+                                <i class="fas fa-list"></i> View All Menus
+                            </button>
+                            <button class="btn btn-danger" onclick="clearAllMenus()">
+                                <i class="fas fa-trash"></i> Clear All Menus
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="allMenusView" class="all-menus-view" style="display: none;">
+                        <h3>All Stored Menus</h3>
+                        <div id="allMenusList" class="all-menus-list">
+                            <!-- All menus will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Toast Notification Container -->
+        <div id="toastContainer" class="toast-container"></div>
+
+        <!-- Auth Success/Error Messages -->
+        <div id="authMessage" class="auth-message" style="display: none;"></div>
+
+        <!-- Event Details Modal -->
+        <div id="eventModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="modal-close" onclick="closeEventModal()">&times;</span>
+                <h2 id="modalEventTitle"></h2>
+                <div class="modal-body">
+                    <div class="modal-detail">
+                        <i class="fas fa-clock"></i>
+                        <span id="modalEventTime"></span>
+                    </div>
+                    <div class="modal-detail" id="modalLocationContainer" style="display: none;">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="modalEventLocation"></span>
+                    </div>
+                    <div class="modal-detail" id="modalDescriptionContainer" style="display: none;">
+                        <i class="fas fa-align-left"></i>
+                        <span id="modalEventDescription"></span>
+                    </div>
+                    <div class="modal-detail">
+                        <i class="fas fa-calendar"></i>
+                        <span id="modalEventSource"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal Selection Modal -->
+        <div id="mealModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Select Meal</h3>
+                    <button class="close-btn" onclick="closeMealModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="meal-selection">
+                        <label for="mealSelect">Choose from saved meals:</label>
+                        <select id="mealSelect" class="meal-select">
+                            <option value="">-- Select a meal --</option>
+                        </select>
+                        <p style="text-align: center; margin: 10px 0;">OR</p>
+                        <label for="newMealInput">Enter a new meal:</label>
+                        <input type="text" id="newMealInput" class="meal-input" placeholder="e.g., Chicken Parmesan">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeMealModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveMealForDay()">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Meal Modal -->
+        <div id="addMealModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add New Meal</h3>
+                    <button class="close-btn" onclick="closeAddMealDialog()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label for="addMealInput">Meal Name:</label>
+                    <input type="text" id="addMealInput" class="meal-input" placeholder="e.g., Beef Tacos">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeAddMealDialog()">Cancel</button>
+                    <button class="btn btn-primary" onclick="addNewMeal()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Status Footer -->
+    <footer class="connection-status-footer">
+        <button class="btn-connection google-connection" onclick="authorizeGoogle()" title="Google Calendar Connection">
+            <i class="fab fa-google"></i>
+        </button>
+        <span class="connection-status apple-connection" id="appleStatus" title="Apple Calendar Connection">
+            <i class="fab fa-apple"></i>
+        </span>
+    </footer>
+
+    <script>
+        window.APP_SETTINGS = <%- JSON.stringify(publicSettings) %>;
+    </script>
+    <script src="/js/calendar.js"></script>
+    <script src="/js/meals.js"></script>
+    <script src="/js/lunch-menu.js"></script>
+    <script src="/js/app.js?v=4"></script>
+    <script>
+        // Check for auth status in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const authStatus = urlParams.get('auth');
+        if (authStatus) {
+            showAuthMessage(authStatus);
+        }
+
+        // Initialize the app
+        initializeApp();
+    </script>
+</body>
+</html>

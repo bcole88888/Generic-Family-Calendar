@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Family Calendar
+Comment=Family Calendar and Chore Tracking Application
+GenericName=Calendar
+Keywords=calendar;family;chores;tasks;
+Exec=/opt/familycalendar/family-calendar
+Icon=/opt/familycalendar/assets/icon.png
+Terminal=false
+Type=Application
+Categories=Office;Calendar;
+StartupNotify=true
+StartupWMClass=family-calendar

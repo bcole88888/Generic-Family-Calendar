@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elf Message Preview</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body {
+            background: #f5f5f5;
+            padding: 40px 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .preview-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .preview-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .preview-header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .preview-header p {
+            color: #666;
+        }
+        .preview-note {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            color: #856404;
+        }
+        /* Force the banner to show for preview */
+        .elf-message-banner {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="preview-header">
+            <h1>Elf Message Preview</h1>
+            <p>This is how the message from Jingle will appear on December 24th</p>
+        </div>
+
+        <!-- Elf on a Shelf Goodbye Message -->
+        <div class="elf-message-banner" id="elfMessageBanner">
+            <div class="elf-message-content">
+                <img src="/images/elfshelf.webp" alt="Jingle the Elf" class="elf-image">
+                <div class="elf-message-text">
+                    <p class="elf-greeting">Goodbye, kids!</p>
+                    <p class="elf-body">I had so much fun watching you this year! You've been wonderful, and I can't wait to see you again next Christmas!</p>
+                    <p class="elf-signature">With love, <span class="elf-name">Jingle</span> 🎄</p>
+                </div>
+                <img src="/images/elfshelf.webp" alt="Jingle the Elf" class="elf-image">
+            </div>
+        </div>
+
+        <div class="preview-note">
+            <strong>Note:</strong> This banner will automatically appear on December 24th and be hidden on all other days.
+        </div>
+    </div>
+</body>
+</html>

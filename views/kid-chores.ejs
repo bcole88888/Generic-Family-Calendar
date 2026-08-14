@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/chore-management.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <a href="/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <h1><%= kidName %>'s Chores</h1>
+            <div class="header-controls">
+                <div class="points-badge">
+                    <i class="fas fa-star"></i>
+                    <span id="dailyPointsDisplay"><%= kidChores.dailyChores.filter(c => c.completed).reduce((sum, c) => sum + c.points, 0) %></span> today
+                </div>
+                <div class="points-badge weekly-points">
+                    <i class="fas fa-trophy"></i>
+                    <span id="totalPointsDisplay"><%= kidChores.totalPoints %></span> total
+                </div>
+                <button class="btn btn-edit" id="editModeBtn" onclick="toggleEditMode()">
+                    <i class="fas fa-edit"></i> Edit Chores
+                </button>
+            </div>
+        </header>
+
+        <div class="chores-sections">
+            <!-- Daily Chores -->
+            <section class="chores-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-day"></i> Daily Chores</h2>
+                    <button class="btn btn-add edit-mode-only" onclick="showAddChoreModal('dailyChores')">
+                        <i class="fas fa-plus"></i> Add Daily Chore
+                    </button>
+                </div>
+                <div class="chores-list" id="dailyChoresList">
+                    <% kidChores.dailyChores.forEach((chore, index) => { %>
+                        <div class="chore-item <%= chore.completed ? 'completed' : '' %>" data-index="<%= index %>">
+                            <div class="chore-checkbox" onclick="toggleChore('<%= kidName %>', 'dailyChores', <%= index %>)">
+                                <i class="fas fa-<%= chore.completed ? 'check-circle' : 'circle' %>"></i>
+                            </div>
+                            <div class="chore-details" onclick="toggleChore('<%= kidName %>', 'dailyChores', <%= index %>)">
+                                <span class="chore-name"><%= chore.name %></span>
+                                <span class="chore-points">+<%= chore.points %> pts</span>
+                            </div>
+                            <div class="chore-actions edit-mode-only">
+                                <button class="btn-icon btn-edit-chore" onclick="editChore('<%= kidName %>', 'dailyChores', <%= index %>, '<%= chore.name %>', <%= chore.points %>)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete-chore" onclick="deleteChore('<%= kidName %>', 'dailyChores', <%= index %>)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+
+            <!-- Weekly Chores -->
+            <section class="chores-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-week"></i> Weekly Chores</h2>
+                    <button class="btn btn-add edit-mode-only" onclick="showAddChoreModal('weeklyChores')">
+                        <i class="fas fa-plus"></i> Add Weekly Chore
+                    </button>
+                </div>
+                <div class="chores-list" id="weeklyChoresList">
+                    <% kidChores.weeklyChores.forEach((chore, index) => { %>
+                        <div class="chore-item <%= chore.completed ? 'completed' : '' %>" data-index="<%= index %>">
+                            <div class="chore-checkbox" onclick="toggleChore('<%= kidName %>', 'weeklyChores', <%= index %>)">
+                                <i class="fas fa-<%= chore.completed ? 'check-circle' : 'circle' %>"></i>
+                            </div>
+                            <div class="chore-details" onclick="toggleChore('<%= kidName %>', 'weeklyChores', <%= index %>)">
+                                <span class="chore-name"><%= chore.name %></span>
+                                <span class="chore-points">+<%= chore.points %> pts</span>
+                            </div>
+                            <div class="chore-actions edit-mode-only">
+                                <button class="btn-icon btn-edit-chore" onclick="editChore('<%= kidName %>', 'weeklyChores', <%= index %>, '<%= chore.name %>', <%= chore.points %>)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete-chore" onclick="deleteChore('<%= kidName %>', 'weeklyChores', <%= index %>)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+        </div>
+
+        <!-- Progress Summary -->
+        <div class="progress-summary">
+            <div class="progress-item">
+                <span>Daily Progress</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="dailyProgress"></div>
+                </div>
+                <span id="dailyText">0/0</span>
+            </div>
+            <div class="progress-item">
+                <span>Weekly Progress</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="weeklyProgress"></div>
+                </div>
+                <span id="weeklyText">0/0</span>
+            </div>
+        </div>
+
+        <!-- Achievements/Encouragement -->
+        <div class="achievements" id="achievements">
+            <!-- Achievements will be shown here -->
+        </div>
+    </div>
+
+    <!-- Modal for Adding/Editing Chores -->
+    <div id="choreModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeChoreModal()">&times;</span>
+            <h2 id="modalTitle">Add Chore</h2>
+            <form id="choreForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="choreName">Chore Name:</label>
+                    <input type="text" id="choreName" required>
+                </div>
+                <div class="form-group">
+                    <label for="chorePoints">Points:</label>
+                    <input type="number" id="chorePoints" min="1" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeChoreModal()">Cancel</button>
+                    <button type="submit" class="btn btn-save" id="saveChoreBtn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Fireworks Animation Elements -->
+    <div class="fireworks-overlay" id="fireworksOverlay"></div>
+    <div class="fireworks-container" id="fireworksContainer"></div>
+    <div class="fireworks-message" id="fireworksMessage">
+        <div>All Chores Complete!</div>
+        <div style="font-size: 2.5rem; margin-top: 20px;">Amazing Job!</div>
+    </div>
+
+    <script src="/js/kid-chores.js"></script>
+    <script>
+        // Initialize with current data
+        const kidName = '<%= kidName %>';
+        const choreData = <%- JSON.stringify(kidChores) %>;
+        initializeKidChores(kidName, choreData);
+    </script>
+</body>
+</html>

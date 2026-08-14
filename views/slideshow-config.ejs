@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slideshow Configuration - <%= appTitle %></title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .config-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .btn-configure {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 5px;
+        }
+
+        .btn-configure:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .config-item:last-child {
+            border-bottom: none;
+        }
+
+        .config-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .config-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .config-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .interval-input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .photo-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .photo-thumbnail {
+            width: 100%;
+            height: 80px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            transition: transform 0.2s ease;
+        }
+
+        .photo-thumbnail:hover {
+            transform: scale(1.05);
+        }
+
+        .no-photos {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
+
+        @media (max-width: 768px) {
+            .config-container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .config-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .config-control {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="config-container">
+        <h1>🎨 Slideshow Configuration</h1>
+        <p>Configure your background slideshow settings and manage uploaded photos.</p>
+
+        <div class="config-section">
+            <h3>Current Status</h3>
+            <div id="statusContainer">
+                <div class="status-info">Loading configuration...</div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>Slideshow Settings</h3>
+
+            <div class="config-item">
+                <div>
+                    <div class="config-label">Enable Slideshow</div>
+                    <div class="config-description">Turn the background slideshow on or off</div>
+                </div>
+                <div class="config-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enableSlideshow" onchange="toggleSlideshow()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="config-item">
+                <div>
+                    <div class="config-label">Slide Interval</div>
+                    <div class="config-description">How often to change slides (in minutes)</div>
+                </div>
+                <div class="config-control">
+                    <input type="number" id="slideInterval" class="interval-input" min="1" max="60" value="5" onchange="updateInterval()">
+                    <span>minutes</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>Photo Management</h3>
+            <p>Current photos in slideshow rotation:</p>
+
+            <div id="photosContainer">
+                <div class="status-info">Loading photos...</div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a href="/photos/upload" class="btn-configure">📤 Upload New Photos</a>
+                <button class="btn-configure" onclick="refreshPhotos()">🔄 Refresh Photos</button>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>Slideshow Controls</h3>
+            <button class="btn-configure" onclick="testSlideshow()">▶️ Test Next Slide</button>
+            <button class="btn-configure" onclick="restartSlideshow()">🔄 Restart Slideshow</button>
+            <button class="btn-secondary" onclick="stopSlideshow()">⏹️ Stop Slideshow</button>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Calendar</a>
+        </div>
+    </div>
+
+    <script>
+        let currentPhotos = [];
+
+        // Load current configuration and photos
+        async function loadConfig() {
+            try {
+                // Update status with current slideshow state
+                updateStatus();
+
+                // Load photos
+                await loadPhotos();
+
+                // Set initial toggle state
+                const enableToggle = document.getElementById('enableSlideshow');
+                if (window.parent && window.parent.slideshowControls) {
+                    const config = window.parent.slideshowControls.config();
+                    enableToggle.checked = config.enabled;
+                    document.getElementById('slideInterval').value = config.intervalMinutes;
+                }
+
+            } catch (error) {
+                console.error('Error loading configuration:', error);
+                showMessage('Error loading configuration: ' + error.message, 'error');
+            }
+        }
+
+        async function loadPhotos() {
+            try {
+                const response = await fetch('/photos/api/slideshow/photos');
+                const data = await response.json();
+
+                currentPhotos = data.photos;
+                displayPhotos(data.photos);
+            } catch (error) {
+                console.error('Error loading photos:', error);
+                document.getElementById('photosContainer').innerHTML = `
+                    <div class="status-error">Error loading photos: ${error.message}</div>
+                `;
+            }
+        }
+
+        function displayPhotos(photos) {
+            const container = document.getElementById('photosContainer');
+
+            if (photos.length === 0) {
+                container.innerHTML = `
+                    <div class="no-photos">
+                        <h4>No Photos Uploaded</h4>
+                        <p>Upload some photos to start your slideshow!</p>
+                        <a href="/photos/upload" class="btn-configure" style="margin-top: 15px;">Upload Photos</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const photosHtml = photos.map(photo => `
+                <div class="photo-thumbnail"
+                     style="background-image: url('${photo.url}')"
+                     title="${photo.filename}">
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="photo-preview">
+                    ${photosHtml}
+                </div>
+                <div style="margin-top: 15px; color: #666; font-size: 0.9rem;">
+                    📷 ${photos.length} photo(s) in rotation
+                </div>
+            `;
+        }
+
+        function toggleSlideshow() {
+            const enabled = document.getElementById('enableSlideshow').checked;
+
+            if (window.parent && window.parent.slideshowControls) {
+                window.parent.slideshowControls.setEnabled(enabled);
+                showMessage(enabled ? 'Slideshow enabled!' : 'Slideshow disabled!', 'success');
+            } else {
+                showMessage('Slideshow controls not available', 'error');
+            }
+
+            updateStatus();
+        }
+
+        function updateInterval() {
+            const minutes = parseInt(document.getElementById('slideInterval').value);
+
+            if (window.parent && window.parent.slideshowControls) {
+                window.parent.slideshowControls.setInterval(minutes);
+                showMessage(`Slide interval updated to ${minutes} minute(s)!`, 'success');
+            } else {
+                showMessage('Slideshow controls not available', 'error');
+            }
+        }
+
+        function updateStatus() {
+            const container = document.getElementById('statusContainer');
+            const enabled = document.getElementById('enableSlideshow').checked;
+            const interval = document.getElementById('slideInterval').value;
+
+            container.innerHTML = `
+                <div class="status-info">
+                    <strong>Status:</strong> ${enabled ? '✅ Active' : '❌ Disabled'}<br>
+                    <strong>Interval:</strong> ${interval} minute(s)<br>
+                    <strong>Photos:</strong> ${currentPhotos.length} loaded
+                </div>
+            `;
+        }
+
+        function testSlideshow() {
+            if (window.parent && window.parent.slideshowControls) {
+                window.parent.slideshowControls.next();
+                showMessage('Advanced to next slide!', 'success');
+            } else {
+                showMessage('Slideshow controls not available', 'error');
+            }
+        }
+
+        function refreshPhotos() {
+            loadPhotos();
+            if (window.parent && window.parent.slideshowControls) {
+                window.parent.slideshowControls.refresh();
+            }
+            showMessage('Photos refreshed!', 'success');
+        }
+
+        function restartSlideshow() {
+            if (window.parent && window.parent.slideshowControls) {
+                window.parent.slideshowControls.setEnabled(false);
+                setTimeout(() => {
+                    window.parent.slideshowControls.setEnabled(true);
+                }, 500);
+                showMessage('Slideshow restarted!', 'success');
+            } else {
+                showMessage('Slideshow controls not available', 'error');
+            }
+        }
+
+        function stopSlideshow() {
+            document.getElementById('enableSlideshow').checked = false;
+            toggleSlideshow();
+        }
+
+        function showMessage(message, type) {
+            const statusContainer = document.getElementById('statusContainer');
+            const className = type === 'success' ? 'status-success' :
+                             type === 'error' ? 'status-error' : 'status-info';
+
+            statusContainer.innerHTML = `<div class="${className}">${message}</div>`;
+
+            // Restore normal status after 3 seconds
+            setTimeout(() => {
+                updateStatus();
+            }, 3000);
+        }
+
+        // Load config when page loads
+        document.addEventListener('DOMContentLoaded', loadConfig);
+    </script>
+</body>
+</html>
