@@ -15,6 +15,16 @@ const TOKEN_PATH = path.join(__dirname, '..', '.tokens', 'google-tokens.json');
 const MEALS_FILE = path.join(__dirname, '../data/meals.json');
 const mealsStore = new JsonStore(MEALS_FILE, { mealsByDate: {}, mealsList: [] });
 
+// Last-known-good events/tasks per source, persisted so a brief Google/iCloud
+// outage (or a kiosk reboot during one) shows the last real data instead of
+// an empty dashboard. Updated on every successful fetch, read on failure.
+const LAST_KNOWN_EVENTS_FILE = path.join(__dirname, '../data/last-known-events.json');
+const lastKnownStore = new JsonStore(LAST_KNOWN_EVENTS_FILE, {
+    google: { events: [], tasks: [] },
+    apple: { events: [] }
+});
+const lastKnown = lastKnownStore.read();
+
 // Google OAuth2 setup
 const oauth2Client = createGoogleAuth();
 
@@ -98,15 +108,15 @@ function isGoogleAuthenticated() {
         (oauth2Client.credentials.access_token || oauth2Client.credentials.refresh_token);
 }
 
-// Fetch Google Calendar events
+// Fetch Google Calendar events. Falls back to the last successfully fetched
+// events (flagged stale) if this fetch fails, instead of going empty.
 async function fetchGoogleCalendarEvents() {
-    try {
-        // Check if user has authenticated Google Calendar
-        if (!isGoogleAuthenticated()) {
-            console.log('Google Calendar not authenticated yet - user needs to authorize first');
-            return [];
-        }
+    if (!isGoogleAuthenticated()) {
+        console.log('Google Calendar not authenticated yet - user needs to authorize first');
+        return { events: [], stale: false };
+    }
 
+    try {
         // Calculate date range: 1 week ago to 60 days in the future
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 7); // 1 week ago
@@ -124,8 +134,7 @@ async function fetchGoogleCalendarEvents() {
             orderBy: 'startTime'
         });
 
-        console.log(`Successfully fetched ${response.data.items.length} Google Calendar events`);
-        return response.data.items.map(event => ({
+        const events = response.data.items.map(event => ({
             id: event.id,
             title: event.summary,
             start: event.start.dateTime || event.start.date,
@@ -135,6 +144,11 @@ async function fetchGoogleCalendarEvents() {
             location: event.location || '',
             description: event.description || ''
         }));
+
+        console.log(`Successfully fetched ${events.length} Google Calendar events`);
+        lastKnown.google.events = events;
+        lastKnownStore.write(lastKnown);
+        return { events, stale: false };
     } catch (error) {
         // More specific error handling
         if (error.message.includes('No access, refresh token')) {
@@ -142,7 +156,8 @@ async function fetchGoogleCalendarEvents() {
         } else {
             console.error('Error fetching Google Calendar events:', error);
         }
-        return [];
+        console.log(`Serving ${lastKnown.google.events.length} cached Google Calendar events after fetch failure`);
+        return { events: lastKnown.google.events, stale: true };
     }
 }
 
@@ -165,15 +180,15 @@ function loadMeals() {
     return mealsStore.read();
 }
 
-// Fetch Google Tasks
+// Fetch Google Tasks. Falls back to the last successfully fetched tasks
+// (flagged stale) if this fetch fails, instead of going empty.
 async function fetchGoogleTasks() {
-    try {
-        // Check if user has authenticated Google Calendar
-        if (!isGoogleAuthenticated()) {
-            console.log('Google Tasks not authenticated yet - user needs to authorize first');
-            return [];
-        }
+    if (!isGoogleAuthenticated()) {
+        console.log('Google Tasks not authenticated yet - user needs to authorize first');
+        return { tasks: [], stale: false };
+    }
 
+    try {
         const tasks = google.tasks({ version: 'v1', auth: oauth2Client });
 
         // Get all task lists
@@ -213,21 +228,25 @@ async function fetchGoogleTasks() {
         }
 
         console.log(`Successfully fetched ${allTasks.length} Google Tasks`);
-        return allTasks;
+        lastKnown.google.tasks = allTasks;
+        lastKnownStore.write(lastKnown);
+        return { tasks: allTasks, stale: false };
     } catch (error) {
         console.error('Error fetching Google Tasks:', error.message);
-        return [];
+        console.log(`Serving ${lastKnown.google.tasks.length} cached Google Tasks after fetch failure`);
+        return { tasks: lastKnown.google.tasks, stale: true };
     }
 }
 
-// Fetch Apple Calendar events (CalDAV)
+// Fetch Apple Calendar events (CalDAV). Falls back to the last successfully
+// fetched events (flagged stale) if this fetch fails, instead of going empty.
 async function fetchAppleCalendarEvents() {
-    try {
-        const appleCalendar = getAppleCalendarClient();
-        if (!appleCalendar) {
-            return [];
-        }
+    const appleCalendar = getAppleCalendarClient();
+    if (!appleCalendar) {
+        return { events: [], stale: false };
+    }
 
+    try {
         // Calculate date range: 1 week ago to 60 days in the future
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 7); // 1 week ago
@@ -235,14 +254,19 @@ async function fetchAppleCalendarEvents() {
         const endDate = new Date();
         endDate.setDate(endDate.getDate() + 60); // 60 days in the future
 
-        const events = await appleCalendar.fetchEvents(startDate, endDate);
-        return events.map(event => ({
+        const rawEvents = await appleCalendar.fetchEvents(startDate, endDate);
+        const events = rawEvents.map(event => ({
             ...event,
             source: 'apple'
         }));
+
+        lastKnown.apple.events = events;
+        lastKnownStore.write(lastKnown);
+        return { events, stale: false };
     } catch (error) {
         console.error('Error fetching Apple Calendar events:', error);
-        return [];
+        console.log(`Serving ${lastKnown.apple.events.length} cached Apple Calendar events after fetch failure`);
+        return { events: lastKnown.apple.events, stale: true };
     }
 }
 
@@ -274,26 +298,28 @@ router.get('/api/events', async (req, res) => {
         }
 
         // Fetch the three remote sources in parallel instead of serially
-        const [googleEvents, appleEvents, googleTasks] = await Promise.all([
+        const [googleResult, appleResult, tasksResult] = await Promise.all([
             fetchGoogleCalendarEvents(),
             fetchAppleCalendarEvents(),
             fetchGoogleTasks()
         ]);
         const mealsData = loadMeals();
 
-        const allEvents = [...googleEvents, ...appleEvents];
+        const allEvents = [...googleResult.events, ...appleResult.events];
         const payload = {
             events: allEvents,
-            tasks: googleTasks,
+            tasks: tasksResult.tasks,
             meals: mealsData.mealsByDate,
             sources: {
                 google: {
                     authenticated: isGoogleAuthenticated(),
-                    eventCount: googleEvents.length,
-                    taskCount: googleTasks.length
+                    eventCount: googleResult.events.length,
+                    taskCount: tasksResult.tasks.length,
+                    stale: googleResult.stale || tasksResult.stale
                 },
                 apple: {
-                    eventCount: appleEvents.length
+                    eventCount: appleResult.events.length,
+                    stale: appleResult.stale
                 }
             }
         };
