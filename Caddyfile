@@ -1,0 +1,16 @@
+{$DOMAIN} {
+	reverse_proxy familycalendar:3000
+
+	tls {
+		dns cloudflare {$CF_API_TOKEN}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=63072000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer-when-downgrade"
+	}
+
+	encode gzip
+}

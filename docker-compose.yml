@@ -21,17 +21,26 @@ services:
       retries: 3
       start_period: 40s
 
-  # Optional: Add nginx for reverse proxy and SSL termination
-  nginx:
-    image: nginx:alpine
+  # Optional: reverse proxy + automatic Let's Encrypt cert via Cloudflare
+  # DNS-01 (no public port-forwarding required). See README for setup.
+  caddy:
+    build:
+      context: .
+      dockerfile: caddy/Dockerfile
     ports:
       - "80:80"
       - "443:443"
+    env_file:
+      - .env
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - familycalendar
     restart: unless-stopped
     profiles:
       - production
+
+volumes:
+  caddy_data:
+  caddy_config:
