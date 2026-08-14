@@ -1,6 +1,24 @@
 const { createDAVClient } = require('tsdav');
 const ICAL = require('ical.js');
 
+// Retries a network call with exponential backoff, so a transient iCloud
+// blip doesn't immediately surface as a failure to the caller.
+async function withRetry(fn, { retries = 3, baseDelayMs = 500, label = 'CalDAV operation' } = {}) {
+    let lastError;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error;
+            if (attempt === retries) break;
+            const delay = baseDelayMs * 2 ** (attempt - 1);
+            console.error(`${label} failed (attempt ${attempt}/${retries}): ${error.message}. Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    throw lastError;
+}
+
 class AppleCalendarClient {
     constructor(username, password) {
         this.username = username;
@@ -12,15 +30,18 @@ class AppleCalendarClient {
     // Initialize the DAV client
     async initialize() {
         try {
-            this.client = await createDAVClient({
-                serverUrl: 'https://caldav.icloud.com/',
-                credentials: {
-                    username: this.username,
-                    password: this.password,
-                },
-                authMethod: 'Basic',
-                defaultAccountType: 'caldav',
-            });
+            this.client = await withRetry(
+                () => createDAVClient({
+                    serverUrl: 'https://caldav.icloud.com/',
+                    credentials: {
+                        username: this.username,
+                        password: this.password,
+                    },
+                    authMethod: 'Basic',
+                    defaultAccountType: 'caldav',
+                }),
+                { label: 'Apple Calendar client initialization' }
+            );
 
             console.log('Apple Calendar client initialized successfully');
             return true;
@@ -37,7 +58,10 @@ class AppleCalendarClient {
                 await this.initialize();
             }
 
-            this.calendars = await this.client.fetchCalendars();
+            this.calendars = await withRetry(
+                () => this.client.fetchCalendars(),
+                { label: 'Apple Calendar list fetch' }
+            );
             console.log(`Found ${this.calendars.length} Apple calendars`);
             return this.calendars;
         } catch (error) {
@@ -78,13 +102,16 @@ class AppleCalendarClient {
             // Fetch events from each calendar
             for (const calendar of this.calendars) {
                 try {
-                    const calendarObjects = await this.client.fetchCalendarObjects({
-                        calendar: calendar,
-                        timeRange: {
-                            start: startDate.toISOString(),
-                            end: endDate.toISOString(),
-                        },
-                    });
+                    const calendarObjects = await withRetry(
+                        () => this.client.fetchCalendarObjects({
+                            calendar: calendar,
+                            timeRange: {
+                                start: startDate.toISOString(),
+                                end: endDate.toISOString(),
+                            },
+                        }),
+                        { label: `Events fetch for calendar "${calendar.displayName}"` }
+                    );
 
                     // Parse iCalendar data
                     for (const obj of calendarObjects) {
