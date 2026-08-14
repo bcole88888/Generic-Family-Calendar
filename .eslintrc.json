@@ -39,6 +39,14 @@
                 "no-unused-vars": "off",
                 "node/no-unsupported-features/es-syntax": "off"
             }
+        },
+        {
+            "files": [
+                "main.js"
+            ],
+            "rules": {
+                "node/no-unpublished-require": "off"
+            }
         }
     ]
 }
