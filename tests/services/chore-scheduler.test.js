@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const { resetAllDailyChores, resetWeeklyPoints } = require('../../services/chore-scheduler');
 
 // Mock fs
